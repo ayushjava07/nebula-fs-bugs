@@ -6,13 +6,9 @@
 #include <cstring>
 #include <system_error>
 #include <fstream>
-#include <unordered_map>
 
 namespace nebula {
 namespace parser {
-
-// BUG: Global cache storing raw pointers to ChunkManager
-static std::unordered_map<uint64_t, storage::ChunkManager*> g_chunkManagerCache;
 
 Parser::Parser(ParserConfig config) : config_(config) {}
 
@@ -254,8 +250,6 @@ Result<ParseResult> Parser::parseInternal(std::span<const uint8_t> data) {
             }
         } else {
             result.chunkManager = getValue(std::move(chunkResult));
-            // BUG: Store raw pointer to chunkManager in global cache
-            g_chunkManagerCache[result.header.chunkOffset()] = &result.chunkManager;
         }
     }
     state_ = ParserState::CompressedBlocks;
@@ -290,16 +284,6 @@ Result<ParseResult> Parser::parseInternal(std::span<const uint8_t> data) {
     }
 
     state_ = ParserState::ObjectRecon;
-
-    // BUG: Access cached ChunkManager pointer (may be dangling after error unwind)
-    auto cachedIt = g_chunkManagerCache.find(result.header.chunkOffset());
-    if (cachedIt != g_chunkManagerCache.end()) {
-        auto* cachedMgr = cachedIt->second;
-        // If error unwind destroyed result.chunkManager, cachedMgr is dangling
-        if (cachedMgr) {
-            (void)cachedMgr->uniqueChunkCount(); // BUG: UAF if destroyed
-        }
-    }
 
     result.valid = true;
     result.warnings = warnings_;
