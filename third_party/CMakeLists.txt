@@ -20,7 +20,10 @@ set(ZLIB_SOURCES
 )
 add_library(bundled_zlib STATIC ${ZLIB_SOURCES})
 target_include_directories(bundled_zlib PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/zlib)
-target_compile_definitions(bundled_zlib PRIVATE -DHAVE_HIDDEN)
+target_compile_definitions(bundled_zlib PRIVATE
+    -DHAVE_HIDDEN
+    -D_GNU_SOURCE
+)
 
 # Build lz4 from bundled source
 set(LZ4_SOURCES

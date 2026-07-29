@@ -22,7 +22,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
             std::span<const uint8_t>(data, size), size);
         (void)ec;
 
-        nebula::parser::MetadataParser::quickValidate(
+        (void)nebula::parser::MetadataParser::quickValidate(
             std::span<const uint8_t>(data, size));
     }
 
@@ -33,7 +33,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
         (void)ec;
 
         if (!ec) {
-            store.validate();
+            (void)store.validate();
             volatile auto count = store.size();
             (void)count;
         }
@@ -53,7 +53,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
         auto serialized = store.serialize();
 
         nebula::metadata::MetadataStore parsed;
-        parsed.deserialize(serialized);
+        (void)parsed.deserialize(serialized);
     }
 
     return 0;

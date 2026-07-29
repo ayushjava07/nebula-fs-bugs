@@ -12,8 +12,11 @@ TEST(RecoveryTest, NoRecoveryNeeded) {
 
 TEST(RecoveryTest, NeedsRecovery) {
     filesystem::JournalManager jm;
-    jm.beginCheckpoint();
-    jm.logCreate(1, std::span<const uint8_t>());
+    std::error_code ec;
+    ec = jm.beginCheckpoint();
+    ASSERT_FALSE(ec) << "beginCheckpoint failed: " << ec.message();
+    ec = jm.logCreate(1, std::span<const uint8_t>());
+    ASSERT_FALSE(ec) << "logCreate failed: " << ec.message();
 
     filesystem::Recovery recovery;
     EXPECT_TRUE(recovery.needsRecovery(jm));
@@ -28,9 +31,13 @@ TEST(RecoveryTest, AnalyzeEmptyJournal) {
 
 TEST(RecoveryTest, AnalyzeCompleteJournal) {
     filesystem::JournalManager jm;
-    jm.beginCheckpoint();
-    jm.logCreate(1, std::vector<uint8_t>{1, 2, 3});
-    jm.commit();
+    std::error_code ec;
+    ec = jm.beginCheckpoint();
+    ASSERT_FALSE(ec) << "beginCheckpoint failed: " << ec.message();
+    ec = jm.logCreate(1, std::vector<uint8_t>{1, 2, 3});
+    ASSERT_FALSE(ec) << "logCreate failed: " << ec.message();
+    ec = jm.commit();
+    ASSERT_FALSE(ec) << "commit failed: " << ec.message();
 
     filesystem::Recovery recovery;
     auto result = recovery.analyze(jm);
@@ -44,16 +51,22 @@ TEST(RecoveryTest, EstimateRecoveryTime) {
     auto time = recovery.estimateRecoveryTime(jm);
     EXPECT_EQ(time, std::chrono::seconds(0));
 
-    jm.logCreate(1, std::span<const uint8_t>());
+    std::error_code ec;
+    ec = jm.logCreate(1, std::span<const uint8_t>());
+    ASSERT_FALSE(ec) << "logCreate failed: " << ec.message();
     time = recovery.estimateRecoveryTime(jm);
     EXPECT_GE(time, std::chrono::seconds(0));
 }
 
 TEST(RecoveryTest, RecoverAutomatic) {
     filesystem::JournalManager jm;
-    jm.beginCheckpoint();
-    jm.logCreate(42, std::vector<uint8_t>{1, 2, 3});
-    jm.commit();
+    std::error_code ec;
+    ec = jm.beginCheckpoint();
+    ASSERT_FALSE(ec) << "beginCheckpoint failed: " << ec.message();
+    ec = jm.logCreate(42, std::vector<uint8_t>{1, 2, 3});
+    ASSERT_FALSE(ec) << "logCreate failed: " << ec.message();
+    ec = jm.commit();
+    ASSERT_FALSE(ec) << "commit failed: " << ec.message();
 
     filesystem::RecoveryConfig config;
     config.strategy = filesystem::RecoveryStrategy::Automatic;
@@ -71,8 +84,11 @@ TEST(RecoveryTest, RecoverAutomatic) {
 
 TEST(RecoveryTest, RecoverBestEffort) {
     filesystem::JournalManager jm;
-    jm.beginCheckpoint();
-    jm.logCreate(1, std::span<const uint8_t>());
+    std::error_code ec;
+    ec = jm.beginCheckpoint();
+    ASSERT_FALSE(ec) << "beginCheckpoint failed: " << ec.message();
+    ec = jm.logCreate(1, std::span<const uint8_t>());
+    ASSERT_FALSE(ec) << "logCreate failed: " << ec.message();
 
     filesystem::RecoveryConfig config;
     config.strategy = filesystem::RecoveryStrategy::BestEffort;
@@ -88,8 +104,11 @@ TEST(RecoveryTest, RecoverBestEffort) {
 
 TEST(RecoveryTest, ManualStrategy) {
     filesystem::JournalManager jm;
-    jm.beginCheckpoint();
-    jm.logCreate(1, std::span<const uint8_t>());
+    std::error_code ec;
+    ec = jm.beginCheckpoint();
+    ASSERT_FALSE(ec) << "beginCheckpoint failed: " << ec.message();
+    ec = jm.logCreate(1, std::span<const uint8_t>());
+    ASSERT_FALSE(ec) << "logCreate failed: " << ec.message();
 
     filesystem::RecoveryConfig config;
     config.strategy = filesystem::RecoveryStrategy::Manual;

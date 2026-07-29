@@ -96,14 +96,15 @@ CryptoResult EncryptionEngine::encrypt(std::span<const uint8_t> data,
 #ifdef NEBULA_HAS_OPENSSL
     CryptoResult result;
 
-    if (!ctx_) {
-        result.ec = make_error_code(ErrorCode::EncryptionError);
-        return result;
-    }
-
+    // None mode: passthrough, no encryption
     if (config_.algorithm == EncryptionAlgorithm::None) {
         result.data.assign(data.begin(), data.end());
         result.success = true;
+        return result;
+    }
+
+    if (!ctx_) {
+        result.ec = make_error_code(ErrorCode::EncryptionError);
         return result;
     }
 
@@ -128,8 +129,9 @@ CryptoResult EncryptionEngine::encrypt(std::span<const uint8_t> data,
         return result;
     }
 
+    // Write ciphertext at start of buffer (no IV prefix)
     if (1 != EVP_EncryptUpdate(static_cast<EVP_CIPHER_CTX*>(ctx_),
-                                buf.data() + 12, &outLen,
+                                buf.data(), &outLen,
                                 data.data(), static_cast<int>(data.size()))) {
         result.ec = make_error_code(ErrorCode::EncryptionError);
         return result;
@@ -137,7 +139,7 @@ CryptoResult EncryptionEngine::encrypt(std::span<const uint8_t> data,
     int cipherLen = outLen;
 
     if (1 != EVP_EncryptFinal_ex(static_cast<EVP_CIPHER_CTX*>(ctx_),
-                                 buf.data() + 12 + cipherLen, &outLen)) {
+                                 buf.data() + cipherLen, &outLen)) {
         result.ec = make_error_code(ErrorCode::EncryptionError);
         return result;
     }
@@ -150,9 +152,7 @@ CryptoResult EncryptionEngine::encrypt(std::span<const uint8_t> data,
         return result;
     }
 
-    std::memcpy(buf.data(), iv.data(), 12);
-    std::memcpy(buf.data() + 12 + cipherLen, tag, 16);
-    buf.resize(12 + cipherLen + 16);
+    buf.resize(static_cast<size_t>(cipherLen));
     EVP_CIPHER_CTX_reset(static_cast<EVP_CIPHER_CTX*>(ctx_));
 
     result.data = std::move(buf);
@@ -175,14 +175,15 @@ CryptoResult EncryptionEngine::decrypt(std::span<const uint8_t> encryptedData,
 #ifdef NEBULA_HAS_OPENSSL
     CryptoResult result;
 
-    if (!ctx_) {
-        result.ec = make_error_code(ErrorCode::EncryptionError);
-        return result;
-    }
-
+    // None mode: passthrough, no decryption
     if (config_.algorithm == EncryptionAlgorithm::None) {
         result.data.assign(encryptedData.begin(), encryptedData.end());
         result.success = true;
+        return result;
+    }
+
+    if (!ctx_) {
+        result.ec = make_error_code(ErrorCode::EncryptionError);
         return result;
     }
 

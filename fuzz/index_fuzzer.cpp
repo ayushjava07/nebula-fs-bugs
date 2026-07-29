@@ -20,7 +20,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
         if (!ec) {
             volatile auto count = mgr.size();
             (void)count;
-            mgr.validate();
+            (void)mgr.validate();
         }
     }
 

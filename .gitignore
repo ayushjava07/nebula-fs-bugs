@@ -14,7 +14,7 @@ cmake-build-*/
 Thumbs.db
 
 # Generated seed corpus builder binary
-fuzz/seed_corpus/gen_seeds
+fuzz/gen_seeds
 
 # Library
 *.a
