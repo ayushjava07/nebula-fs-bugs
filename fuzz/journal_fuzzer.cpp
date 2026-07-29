@@ -17,7 +17,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t* data, size_t size) {
 
         if (!ec) {
             // Test journal operations on deserialized data
-            jm.verifyIntegrity();
+            (void)jm.verifyIntegrity();
 
             // Attempt recovery
             nebula::filesystem::Recovery recovery;

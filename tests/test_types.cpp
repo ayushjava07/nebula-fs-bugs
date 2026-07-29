@@ -25,7 +25,8 @@ TEST(TypesTest, PermissionsFromUnixMode) {
 }
 
 TEST(TypesTest, PermissionsRoundTrip) {
-    for (uint16_t mode : {0000, 0644, 0755, 0777, 0600, 0700}) {
+    const uint16_t modes[] = {0000, 0644, 0755, 0777, 0600, 0700};
+    for (uint16_t mode : modes) {
         auto p = Permissions::fromUnixMode(mode);
         EXPECT_EQ(p.toUnixMode(), mode);
     }
